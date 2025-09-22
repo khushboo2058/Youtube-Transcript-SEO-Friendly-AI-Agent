@@ -1,0 +1,321 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "e9196021-268b-4300-8668-aa8fa0672282",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6c8bde75-b6ff-403e-8919-d832be5d1046",
+              "name": "Youtube Video URL",
+              "value": " https://www.youtube.com/watch?v=MA-ulUrj7Bs",
+              "type": "string"
+            },
+            {
+              "id": "eb6dce29-fb3c-4243-9c0b-ce7d67835305",
+              "name": "Recepient email address",
+              "value": "khushboorajput206@gmail.com",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "1b248924-af31-4e32-93cc-2a0fff285fdf",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Edit Fields').item.json['Recepient email address'] }}",
+        "subject": "= {{ $(' Generate Blog').item.json.message.content.title }}",
+        "emailType": "text",
+        "message": "= {{ $(' Generate Blog').item.json.message.content.description }}\n\n\n{{ $(' Generate Blog').item.json.message.content.content }}",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {}
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1232,
+        -48
+      ],
+      "id": "226d52bc-45b4-48d6-830f-cd8bde973e3a",
+      "name": "Send a message",
+      "webhookId": "7f4d1921-54bc-40a8-9e53-005a10939c37",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Lopnc3kifKvgSRfN",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://app.dumplingai.com/api/v1/get-youtube-transcript",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "videoUrl",
+              "value": "={{ $json['Youtube Video URL'] }}"
+            },
+            {
+              "name": "Email",
+              "value": "={{ $json['Recepient email address'] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "90e94eea-f557-40c8-a1e5-42a7d1b7d436",
+      "name": " Get Youtube Transcript",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "o34HSa1yNnPkiuSX",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "chatgpt-4o-latest",
+          "mode": "list",
+          "cachedResultName": "CHATGPT-4O-LATEST"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Write a detailed SEO-optimized blog post using the provided YouTube video transcript.\n\nUse the transcript content as the foundation for the blog, extracting key ideas, topics, and themes to highlight. Ensure the blog post is structured with clear headings, subheadings, and paragraphs, incorporating SEO keywords naturally. The tone should be engaging and informative, targeted towards readers interested in the video's subject matter.\n\nFocus on the fromatting of the blog post add emojis wherever needed. remove any # and \"\" and other fillers use heading and sub heading wherever necessary\n\n- Identify the main topics and themes of the transcript.\n- Extract key points, arguments, or stories present in the transcript.\n- Determine suitable SEO keywords related to the content and integrate them meaningfully.\n- Craft a title that is both engaging and SEO-friendly.\n- Write a comprehensive and well-structured blog post with an introduction, body, and conclusion.\n- Use bullet points, lists, or numbers if necessary for clarity and readability.\n\n- use spacing construct the output to 3-4 paragraphs share pointers keep the email clean \n\n# Steps\n\n1. *Transcript Analysis*: Begin by thoroughly reading the provided transcript to understand the core messages and detailed content.\n   \n2. *Identify Key Points*: Extract important points, arguments, or themes that should be highlighted in the blog post.\n\n3. *SEO Keyword Research*: Determine relevant SEO keywords that align with the content’s themes and audiences.\n\n4. *Blog Structuring*: Create an outline for the blog post, arranging sections logically with appropriate headings (H2, H3) for SEO.\n\n5. *Content Writing*: Write each section based on the transcript’s content, ensuring the inclusion of SEO keywords and maintaining a clear and engaging tone.\n\n6. *Review and Edit*: Proofread for grammatical accuracy and SEO optimization. Ensure smooth flow and coherence.\n\n# Output Format\n\nRespond in the following JSON format:\njson\n{\n  \"title\": \"string\",\n  \"blogImagePrompt\": \"string\",\n  \"description\": \"string\",\n  \"content\": \"string\"\n}\n\n\n- Title: Craft an SEO-friendly engaging title.\n- Blog Image Prompt: Provide a textual prompt that can be used to generate an image relevant to the blog post content. We prefer human first images with text.\n- Description: Summarize the blog post in a concise and engaging way.\n- Content: Write a comprehensive blog using the transcript as reference, structured with clear headings and engaging content.\n\n# Examples\n\n### Input\n[YouTube Transcript]\n\n### Output\njson\n{\n  \"title\": \"Understanding Renewable Energy: A Path to Sustainability\",\n  \"blogImagePrompt\": \"An illustration of various renewable energy sources like solar panels and wind turbines with a man / women.”,\n  \"description\": \"Explore the importance and impact of renewable energy on our planet. This blog delves into key themes and actionable insights from the transcript, providing a comprehensive understanding of sustainable energy solutions.\",\n  \"content\": \"Introduction: Renewable energy is transforming our world...\\nBody: Today's pressing challenges around fossil fuels...\\nConclusion: In embracing renewable energy, we...\"\n}\n\n\n(This example reflects the JSON structure. Use real content from the transcript to fill these sections.)",
+              "role": "system"
+            },
+            {
+              "content": "={{ $json.transcript }}",
+              "role": "system"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        624,
+        0
+      ],
+      "id": "fa9473ae-a90a-42eb-ad87-113b3833b373",
+      "name": " Generate Blog",
+      "credentials": {
+        "openAiApi": {
+          "id": "AcrK9TVahjX70vhJ",
+          "name": "OpenAi account 10"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "model": "dall-e-2",
+        "prompt": "={{ $json.message.content.blogImagePrompt }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        992,
+        -48
+      ],
+      "id": "5f2346c0-a1a2-4cb0-87b9-a3c61334c694",
+      "name": "Generate an image",
+      "notesInFlow": false,
+      "credentials": {
+        "openAiApi": {
+          "id": "CndnAkWSlmff1jnu",
+          "name": "OpenAi account 16"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Set Variables\nYoutube Video URL\nEnter your Gmail",
+        "height": 96,
+        "width": 208,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        -144
+      ],
+      "id": "d7cb92d7-cd95-4c24-b287-74e9e2766409",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "##  Get YouTube Transcript",
+        "height": 80,
+        "width": 182
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        400,
+        176
+      ],
+      "id": "f7a4dcda-4015-4b5d-a140-f26ad584f565",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": " ## Generate Blog Post",
+        "height": 80,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        624,
+        -112
+      ],
+      "id": "d5ab6895-f8c7-462f-823c-1ec1f4d61ac9",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "##  Download image to Attachment \n We need to download the Image and attach it to the Email. "
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        944,
+        144
+      ],
+      "id": "92d445b3-aef3-4918-9456-aed98e2631f7",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## Send Blog Post via email for next steps\nWe send AI Generated content to your email address so you can get ready for publication.",
+        "height": 144,
+        "width": 288,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1168,
+        -208
+      ],
+      "id": "3bd9febc-4512-410d-b47e-d020070e276c",
+      "name": "Sticky Note4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": " Get Youtube Transcript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        []
+      ]
+    },
+    " Get Youtube Transcript": {
+      "main": [
+        [
+          {
+            "node": " Generate Blog",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    " Generate Blog": {
+      "main": [
+        [
+          {
+            "node": "Generate an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate an image": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c8484c55-a7ba-42ee-84f0-40e986d8ec50",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5182e7803adea410ef0d33d1bd5f1e9ca43193f638e662034d6b9ae715398f48"
+  },
+  "id": "1i9GAEEzDFqS2jM2",
+  "tags": []
+}
